@@ -1,8 +1,10 @@
-Start out by Setting up an account through Azure. You will first have to set up VNet and a Security groups. Within the VNet there will be An Ansible Jump Box, 3 Docker containers, and 
-an Elk Stack VM set to run filebeat and microbeat which will send information to Kibana. 
+#Start out by Setting up an account through Azure. You will first have to set up VNet and a Security groups. Within the VNet there will be An Ansible Jump Box, 3 Docker containers, and 
+#an Elk Stack VM set to run filebeat and microbeat which will send information to Kibana. 
 
-##This is an Ansible Playbook in YAML. I used it to download and launch a Docker web container and configure it with my Azure Jump Box VM. 
+#This is an Ansible Playbook in YAML. I used it to download and launch a Docker web container and configure it with my Azure Jump Box VM. 
 
+
+'''
 ---
 - name: Config Web VM with Docker
   hosts: webservers
@@ -36,18 +38,18 @@ an Elk Stack VM set to run filebeat and microbeat which will send information to
       systemd:
         name: docker
         enabled: yes
+'''	
+	
+#Once you have a Jump Box VM with Ansible you can create machines such as Web-1 through Web-3. These containers do not have a public IP address, only a private IP. 
+#They can only be accessed from the Jump Box VM by using SSH Keys. This makes them very secure, the security is stronger then if they had a public IP Address. 
 
-Once you have a Jump Box VM with Ansible you can create machines such as Web-1 through Web-3. These containers do not have a public IP address, only a private IP. 
-They can only be accessed from the Jump Box VM by using SSH Keys. This makes them very secure, the security is stronger then if they had a public IP Address. 
+#After the container has been made you can take the private IP address and add it to the /etc/ansible/host file. You also must make sure your Ansible Config file in /etc/ansible/ansible.cfg has been updated. 
+#You only need to update the configuration file one time. Everytime you create a Web VM you will have to update the host file. You should be able to SSH from the Jump Box into the
+#WebVM's. If you can do this then the configuration should be correct. The following is steps to make sure it gets set up:
+#Remember: Allowing a server to use password authentication for SSH is insecure because the password can be brute forced.
+#Therefore, we will only use cryptographic SSH keys to access our cloud servers. Password authentication will not be allowed. 
+#This is part of the "ground up" security approach that we have been discussing. 
 
-After the container has been made you can take the private IP address and add it to the /etc/ansible/host file. You also must make sure your Ansible Config file in /etc/ansible/ansible.cfg has been updated. 
-You only need to update the configuration file one time. Everytime you create a Web VM you will have to update the host file. You should be able to SSH from the Jump Box into the
-WebVM's. If you can do this then the configuration should be correct. The following is steps to make sure it gets set up:
-
-Remember: Allowing a server to use password authentication for SSH is insecure because the password can be brute forced.
-
-- Therefore, we will only use cryptographic SSH keys to access our cloud servers. Password authentication will not be allowed. 
-     - This is part of the "ground up" security approach that we have been discussing. 
 1. Connect to your Ansible container. Once you're connected, create a new SSH key and copy the public key.
     - Run `docker images` to view your image.
     - Run `docker run -it cyberxsecurity/ansible /bin/bash` to start your container and connect to it. (Note that the prompt changes.)
@@ -68,8 +70,9 @@ Remember: Allowing a server to use password authentication for SSH is insecure b
     - Open the file with `nano /etc/ansible/hosts`.
     - Uncomment the `[webservers]` header line.
     - Add the internal IP address under the `[webservers]` header.
-		- Add the python line: `ansible_python_interpreter=/usr/bin/python3` besides each IP.
-        # Ex 2: A collection of hosts belonging to the 'webservers' group
+    - Add the python line: `ansible_python_interpreter=/usr/bin/python3` besides each IP.
+        '''
+	# Ex 2: A collection of hosts belonging to the 'webservers' group
         [webservers]
         ## alpha.example.org
         ## beta.example.org
@@ -77,18 +80,21 @@ Remember: Allowing a server to use password authentication for SSH is insecure b
         ## 192.168.1.110
         10.0.0.6 ansible_python_interpreter=/usr/bin/python3
 				10.0.0.7 ansible_python_interpreter=/usr/bin/python3
-
+         ''''
+	 
 5. Change the Ansible configuration file to use your administrator account for SSH connections.
-
     - Open the file with `nano /etc/ansible/ansible.cfg` and scroll down to the `remote_user` option.
     - Uncomment the `remote_user` line and replace `root` with your admin username using this format:
     - `remote_user = <user-name-for-web-VMs>`
-    # default user to use for playbooks if user is not specified
-    # (/usr/bin/ansible will use current user as default)
+    - default user to use for playbooks if user is not specified
+    - (/usr/bin/ansible will use current user as default)
+    '''
     remote_user = sysadmin
-
+     '''
+     
 6. Test an Ansible connection using the appropriate Ansible command.
-If you used `ansible_python_interpreter=/usr/bin/python3` your output should look like:
+#If you used `ansible_python_interpreter=/usr/bin/python3` your output should look like:
+
 ```bash
 10.0.0.5 | SUCCESS => {
 "changed": false, 
@@ -97,10 +103,11 @@ If you used `ansible_python_interpreter=/usr/bin/python3` your output should loo
 10.0.0.6 | SUCCESS => {
 		"changed": false, 
 		"ping": "pong"
+'''
 
-
-After this has been tested you can move forward with creating the VM for the Elk Stack. I will also run Ansible playbooks for the filebeat and the microbeat to be created. 
-The install-elk playbook
+#After this has been tested you can move forward with creating the VM for the Elk Stack. I will also run Ansible playbooks for the filebeat and the microbeat to be created. 
+#The install-elk playbook
+'''
 ---
 - name: Configure Elk VM with Docker
   hosts: elkservers
@@ -152,10 +159,13 @@ The install-elk playbook
           -  5601:5601
           -  9200:9200
           -  5044:5044
+	  
+   '''	  
+	  
+#After the Elk VM gets set up you can run the filebeat playbook and also modify the /etc/ansible/host file. You have to modify the host file so that only certain playbooks will 
+#will run when you set up separate hosts. This way it will only attach to the Elk VM and not to the Webservers or Jump Box VM. The following is the playbook for Filebeat
 
-After the Elk VM gets set up you can run the filebeat playbook and also modify the /etc/ansible/host file. You have to modify the host file so that only certain playbooks will 
-will run when you set up separate hosts. This way it will only attach to the Elk VM and not to the Webservers or Jump Box VM. The following is the playbook for Filebeat
-
+'''
 ---
 - name: installing and launching filebeat
   hosts: webservers
@@ -182,11 +192,12 @@ sudo dpkg -i filebeat-7.6.1-amd64.deb
 
   - name: start filebeat service
     command: filebeat -e
+  '''
     
-    Once Filebeat and Microbeat have been installed information should be showing up on the Kibana Dashboard. You will use the Elk VM public IP address to access the Kibana App. 
-    Example would be <ElkPublicIP>:5601/app/kibana This will allow you to bring up the dashboad using the 5601 port. The 5601 port is a tcp/udp port that allows real time information to come 
-    through.
+   #Once Filebeat and Microbeat have been installed information should be showing up on the Kibana Dashboard. You will use the Elk VM public IP address to access the Kibana App. 
+   #Example would be <ElkPublicIP>:5601/app/kibana This will allow you to bring up the dashboad using the 5601 port. The 5601 port is a tcp/udp port that allows real time information to come 
+   #through.
     
-    A diagram of this is avaliable within the project. 
+   #A diagram of this is avaliable within the project. 
 
 
